@@ -163,7 +163,7 @@ MIT License — İstediğin gibi kullan, değiştir, dağıt.
 
 ---
 
-## Nöbetçi eczane verilerini sağlayan https://apiservisim.vercel.app'e. 🙏 Sonsuz Teşekkürler.
+## Nöbetçi eczane verilerini sağlayan https://apiservisim.vercel.app 'e. 🙏 Sonsuz Teşekkürler.
 
 ---
 

@@ -1,0 +1,46 @@
+{
+  "name": "Nöbetçi Eczanem - Türkiye Geneli Nöbetçi Eczane",
+  "short_name": "Nöbetçi Eczanem",
+  "description": "Türkiye'nin 81 ilinde güncel nöbetçi eczane bilgilerine anında ulaşın. Hızlı ve güvenilir.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fef2f2",
+  "theme_color": "#dc2626",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "medical", "lifestyle"],
+  "lang": "tr",
+  "dir": "ltr",
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "İstanbul Nöbetçi Eczane",
+      "short_name": "İstanbul",
+      "description": "İstanbul nöbetçi eczaneleri",
+      "url": "/istanbul-nobetci-eczane",
+      "icons": [{ "src": "/icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Ankara Nöbetçi Eczane",
+      "short_name": "Ankara",
+      "description": "Ankara nöbetçi eczaneleri",
+      "url": "/ankara-nobetci-eczane",
+      "icons": [{ "src": "/icon.svg", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

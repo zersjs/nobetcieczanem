@@ -13,62 +13,64 @@ const manrope = Manrope({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
-const today = new Date();
-const dateStr = getFormattedDate(today);
-const shortDate = getShortDate(today);
-const dateKeywords = getSEODateKeywords(today);
+export async function generateMetadata(): Promise<Metadata> {
+  const today = new Date();
+  const dateStr = getFormattedDate(today);
+  const shortDate = getShortDate(today);
+  const dateKeywords = getSEODateKeywords(today);
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://nobetcieczane.com"),
-  title: {
-    default: `Nöbetçi Eczanem - ${shortDate} Açık Eczaneler`,
-    template: `%s | Nöbetçi Eczanem`,
-  },
-  description: `${dateStr} tarihinde Türkiye'nin 81 ilinde güncel nöbetçi eczane bilgilerine anında ulaşın. İl ve ilçe bazında nöbetçi eczane adresleri, telefon numaraları ve konum bilgileri.`,
-  keywords: [
-    "nöbetçi eczane",
-    "nobetci eczane",
-    "eczane",
-    "nöbetçi",
-    "ilaç",
-    "sağlık",
-    "acil eczane",
-    "gece eczane",
-    "hafta sonu eczane",
-    ...dateKeywords,
-  ],
-  authors: [{ name: "Nöbetçi Eczanem" }],
-  creator: "Nöbetçi Eczanem",
-  publisher: "Nöbetçi Eczanem",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+  return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://nobetcieczane.com"),
+    title: {
+      default: `Nöbetçi Eczanem - ${shortDate} Açık Eczaneler`,
+      template: `%s | Nöbetçi Eczanem`,
+    },
+    description: `${dateStr} tarihinde Türkiye'nin 81 ilinde güncel nöbetçi eczane bilgilerine anında ulaşın. İl ve ilçe bazında nöbetçi eczane adresleri, telefon numaraları ve konum bilgileri.`,
+    keywords: [
+      "nöbetçi eczane",
+      "nobetci eczane",
+      "eczane",
+      "nöbetçi",
+      "ilaç",
+      "sağlık",
+      "acil eczane",
+      "gece eczane",
+      "hafta sonu eczane",
+      ...dateKeywords,
+    ],
+    authors: [{ name: "Nöbetçi Eczanem" }],
+    creator: "Nöbetçi Eczanem",
+    publisher: "Nöbetçi Eczanem",
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
-  openGraph: {
-    type: "website",
-    locale: "tr_TR",
-    siteName: "Nöbetçi Eczanem",
-    title: `Nöbetçi Eczanem - ${shortDate} Açık Eczaneler`,
-    description: `${dateStr} tarihinde Türkiye'nin 81 ilinde güncel nöbetçi eczane bilgilerine anında ulaşın.`,
-    images: [{ url: "/og-image.svg", width: 1200, height: 630, alt: "Nöbetçi Eczanem" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `Nöbetçi Eczanem - ${shortDate} Açık Eczaneler`,
-    description: `${dateStr} tarihinde Türkiye'nin 81 ilinde güncel nöbetçi eczane bilgilerine anında ulaşın.`,
-    images: ["/og-image.svg"],
-  },
-  alternates: { canonical: "/" },
-  verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
-  category: "health",
-};
+    openGraph: {
+      type: "website",
+      locale: "tr_TR",
+      siteName: "Nöbetçi Eczanem",
+      title: `Nöbetçi Eczanem - ${shortDate} Açık Eczaneler`,
+      description: `${dateStr} tarihinde Türkiye'nin 81 ilinde güncel nöbetçi eczane bilgilerine anında ulaşın.`,
+      images: [{ url: "/og-image.svg", width: 1200, height: 630, alt: "Nöbetçi Eczanem" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Nöbetçi Eczanem - ${shortDate} Açık Eczaneler`,
+      description: `${dateStr} tarihinde Türkiye'nin 81 ilinde güncel nöbetçi eczane bilgilerine anında ulaşın.`,
+      images: ["/og-image.svg"],
+    },
+    alternates: { canonical: "/" },
+    verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
+    category: "health",
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -79,6 +81,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nobetcieczane.com";
+  const today = new Date();
+  const dateStr = getFormattedDate(today);
 
   const jsonLd = {
     "@context": "https://schema.org",

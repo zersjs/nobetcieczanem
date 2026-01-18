@@ -39,6 +39,7 @@ async function fetchWithTimeout(
   try {
     const response = await fetch(url, {
       ...options,
+      cache: 'no-store',
       signal: controller.signal,
     });
     return response;

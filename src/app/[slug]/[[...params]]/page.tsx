@@ -8,38 +8,42 @@ import { getFormattedDate, getShortDate, getSEODateKeywords, getISODate } from "
 import { parseSlug, parseIlceSlug, parseSayfaSlug, buildCityUrl, normalizeForUrl } from "@/lib/url-utils";
 import { decryptData, isEncryptedResponse } from "@/lib/crypto";
 
+import { fetchEczaneler } from '@/lib/api-client';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const ITEMS_PER_PAGE = 12;
 
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c');
+}
+
 interface PageProps {
   params: Promise<{ slug: string; params?: string[] }>;
 }
 
-async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
-  for (let i = 0; i < retries; i++) {
-    const response = await fetch(url, { cache: 'no-store' });
-    if (response.ok) return response;
-    if (i < retries - 1) await new Promise(r => setTimeout(r, 500 * (i + 1)));
-  }
-  throw new Error('Fetch failed after retries');
-}
-
 async function getPharmaciesForMeta(il: string): Promise<Eczane[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
   try {
-    const response = await fetchWithRetry(`${baseUrl}/api/eczane?il=${il}`);
-    const rawResult = await response.json();
-    let result: EczaneApiResponse;
-    if (isEncryptedResponse(rawResult)) {
-      result = await decryptData<EczaneApiResponse>(rawResult._e);
-    } else {
-      result = rawResult;
-    }
-    if (!result.success) return [];
-    return result.data || [];
-  } catch {
+    // İstanbul için fetchEczaneler kendi içinde doğru API'yi çağırıyor
+    let eczaneler = await fetchEczaneler({ il, tarih: getISODate() });
+    
+    // İl verisini normalize et
+    eczaneler = eczaneler.map(e => ({
+      ...e,
+      il: e.il || il, // API bazen il verisini döndürmüyor
+    }));
+    
+    return eczaneler;
+  } catch (error) {
+    console.error('Meta data fetch error:', error);
     return [];
   }
 }
@@ -104,27 +108,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 async function getPharmacies(il: string): Promise<{ data: Eczane[]; meta: { toplam: number; tarih: string; guncellenme: string } }> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-  const emptyResult = { data: [] as Eczane[], meta: { toplam: 0, tarih: "", guncellenme: "" } };
+  const today = getISODate();
+  const emptyResult = { data: [] as Eczane[], meta: { toplam: 0, tarih: today, guncellenme: new Date().toISOString() } };
   
   try {
-    const response = await fetchWithRetry(`${baseUrl}/api/eczane?il=${il}`);
-    const rawResult = await response.json();
+    let eczaneler = await fetchEczaneler({ il, tarih: today });
     
-    let result: EczaneApiResponse;
-    if (isEncryptedResponse(rawResult)) {
-      result = await decryptData<EczaneApiResponse>(rawResult._e);
-    } else {
-      result = rawResult;
-    }
-    
-    if (!result.success || !result.data) return emptyResult;
-    
+    // İl verisini normalize et
+    eczaneler = eczaneler.map(e => ({
+      ...e,
+      il: e.il || il,
+    }));
+
     return { 
-      data: result.data, 
-      meta: result.meta || { toplam: result.data.length, tarih: "", guncellenme: new Date().toISOString() } 
+      data: eczaneler, 
+      meta: { 
+        toplam: eczaneler.length, 
+        tarih: today, 
+        guncellenme: new Date().toISOString() 
+      } 
     };
-  } catch {
+  } catch (error) {
+    console.error('Pharmacy data fetch error:', error);
     return emptyResult;
   }
 }

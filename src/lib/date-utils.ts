@@ -20,6 +20,8 @@ export function getISODate(date: Date = new Date()): string {
   return istanbulDate.toISOString().split("T")[0];
 }
 
+export const getTodayDate = getISODate;
+
 export function getDayName(date: Date = new Date()): string {
   return date.toLocaleDateString("tr-TR", { 
     weekday: "long",

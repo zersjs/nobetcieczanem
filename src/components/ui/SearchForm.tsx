@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import gsap from "gsap";
-import { decryptData, isEncryptedResponse } from "@/lib/crypto";
+
+import { getDistricts } from "@/app/actions";
 
 interface City {
   plaka: number;
@@ -16,11 +17,6 @@ interface SearchFormProps {
   cities: City[];
   initialCity?: string;
   initialDistrict?: string;
-}
-
-interface EczaneResponse {
-  success: boolean;
-  data?: { ilce: string }[];
 }
 
 export function SearchForm({ cities, initialCity = "", initialDistrict = "" }: SearchFormProps) {
@@ -41,18 +37,12 @@ export function SearchForm({ cities, initialCity = "", initialDistrict = "" }: S
   useEffect(() => {
     if (selectedCity) {
       setLoading(true);
-      fetch(`/api/eczane?il=${selectedCity}`)
-        .then((res) => res.json())
-        .then(async (rawData) => {
-          let data: EczaneResponse;
-          if (isEncryptedResponse(rawData)) {
-            data = await decryptData<EczaneResponse>(rawData._e);
+      getDistricts(selectedCity)
+        .then((result) => {
+          if (result.success && result.data) {
+            setDistricts(result.data);
           } else {
-            data = rawData;
-          }
-          if (data.success && data.data) {
-            const uniqueDistricts = [...new Set(data.data.map((e) => e.ilce))].filter(Boolean).sort() as string[];
-            setDistricts(uniqueDistricts);
+            setDistricts([]);
           }
         })
         .catch(() => setDistricts([]))

@@ -1,5 +1,6 @@
 import { API_CONFIG, ERROR_CODES, ERROR_MESSAGES } from "@/constants";
 import { Eczane, EczaneQueryParams } from "@/types";
+import { unstable_cache } from "next/cache";
 
 interface ExternalApiResponse {
   success?: boolean;
@@ -87,6 +88,7 @@ async function retryFetch(
 function buildUrl(params: EczaneQueryParams): string {
   const url = new URL(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.eczane}`);
   url.searchParams.set("il", params.il);
+  // tarih parametresi gönderilmiyor - kaynak API tarih gönderilince boş döndürüyor
   return url.toString();
 }
 
@@ -215,7 +217,7 @@ async function fetchIstanbulEczaneler(): Promise<Eczane[]> {
   }
 }
 
-export async function fetchEczaneler(
+async function fetchEczanelerInternal(
   params: EczaneQueryParams,
 ): Promise<Eczane[]> {
   if (params.il.toLowerCase() === "istanbul") {
@@ -232,7 +234,14 @@ export async function fetchEczaneler(
       },
     });
     const data: ExternalApiResponse = await response.json();
-    return parseApiResponse(data);
+    
+    // Debug için boş gelirse konsola bas
+    const parsed = parseApiResponse(data);
+    if (parsed.length === 0) {
+      console.log("Upstream Response (Empty):", JSON.stringify(data, null, 2));
+      console.log("URL:", url);
+    }
+    return parsed;
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error instanceof Error && error.name === "AbortError") {
@@ -249,6 +258,8 @@ export async function fetchEczaneler(
     );
   }
 }
+
+export const fetchEczaneler = fetchEczanelerInternal;
 
 export async function checkApiHealth(): Promise<boolean> {
   try {

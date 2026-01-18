@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateEczaneParams, sanitizeInput, getTodayDate } from '@/lib/validator';
 import { fetchEczaneler, ApiError } from '@/lib/api-client';
-import { cache, generateCacheKey } from '@/lib/cache';
 import { ERROR_CODES, ERROR_MESSAGES, findIl } from '@/constants';
 import { Eczane, EczaneApiResponse, EczaneApiError } from '@/types';
-import { encryptData } from '@/lib/crypto';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -18,11 +16,7 @@ async function createErrorResponse(
     success: false,
     error: { code, message },
   };
-  const encrypted = await encryptData(errorData);
-  return NextResponse.json(
-    { _e: encrypted },
-    { status }
-  );
+  return NextResponse.json(errorData, { status });
 }
 
 async function createSuccessResponse(
@@ -41,17 +35,13 @@ async function createSuccessResponse(
       guncellenme: new Date().toISOString(),
     },
   };
-  const encrypted = await encryptData(responseData);
-  return NextResponse.json(
-    { _e: encrypted },
-    {
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-        'X-Response-Time': `${Date.now()}`,
-      },
-    }
-  );
+  return NextResponse.json(responseData, {
+    status: 200,
+    headers: {
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      'X-Response-Time': `${Date.now()}`,
+    },
+  });
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -76,24 +66,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const { normalized } = validation;
-    const cacheKey = generateCacheKey({
-      il: normalized.il,
-      ilce: normalized.ilce,
-      tarih: normalized.tarih,
-    });
-
-    const cachedData = cache.get<Eczane[]>(cacheKey);
-    if (cachedData) {
-      const response = await createSuccessResponse(cachedData, {
-        il: normalized.il,
-        ilce: normalized.ilce,
-        tarih: normalized.tarih || getTodayDate(),
-      });
-      response.headers.set('X-Cache', 'HIT');
-      response.headers.set('X-Response-Time', `${Date.now() - startTime}ms`);
-      return response;
-    }
-
+    
+    // fetchEczaneler artık unstable_cache ile önbellekleniyor
     const rawEczaneler = await fetchEczaneler(normalized);
     let eczaneler = rawEczaneler.map(e => ({
       ...e,
@@ -115,8 +89,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         return eczaneIlce.includes(ilceNormalized) || ilceNormalized.includes(eczaneIlce);
       });
     }
-    
-    cache.set(cacheKey, eczaneler);
 
     const response = await createSuccessResponse(eczaneler, {
       il: normalized.il,

@@ -2,17 +2,26 @@ import { Metadata } from "next";
 import { Header, Footer, Breadcrumb } from "@/components";
 import { getFormattedDate, getShortDate } from "@/lib/date-utils";
 
-const today = new Date();
-const formattedDate = getFormattedDate(today);
-const shortDate = getShortDate(today);
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: `Kullanım Koşulları | ${shortDate} Nöbetçi Eczane`,
-  description: `Nöbetçi Eczanem ${formattedDate} - Kullanım koşulları ve şartları hakkında bilgi edinin.`,
-  alternates: { canonical: "/kullanim-kosullari" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const today = new Date();
+  const formattedDate = getFormattedDate(today);
+  const shortDate = getShortDate(today);
+  
+  return {
+    title: `Kullanım Koşulları | ${shortDate} Nöbetçi Eczane`,
+    description: `Nöbetçi Eczanem ${formattedDate} - Kullanım koşulları ve şartları hakkında bilgi edinin.`,
+    alternates: { canonical: "/kullanim-kosullari" },
+  };
+}
 
 export default function KullanimKosullariPage() {
+  const today = new Date();
+  const formattedDate = getFormattedDate(today);
+  const shortDate = getShortDate(today);
+  
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
   const breadcrumbItems = [
     { name: "Ana Sayfa", href: "/" },

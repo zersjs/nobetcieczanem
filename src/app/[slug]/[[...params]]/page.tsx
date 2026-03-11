@@ -1,12 +1,11 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Header, Footer, StatusBar, Breadcrumb, LocalBusinessJsonLd, DateSeoJsonLd, SearchForm, PharmacyCard, PharmacyCardSkeleton } from "@/components";
+import { Header, Footer, Breadcrumb, LocalBusinessJsonLd, DateSeoJsonLd, PharmacyCard, DistrictSelect } from "@/components";
 import { Pagination } from "./Pagination";
 import { ILLER } from "@/constants/iller";
-import { Eczane, EczaneApiResponse } from "@/types";
-import { getFormattedDate, getShortDate, getSEODateKeywords, getISODate } from "@/lib/date-utils";
+import { Eczane } from "@/types";
+import { getShortDate, getSEODateKeywords, getISODate, getFormattedDate } from "@/lib/date-utils";
 import { parseSlug, parseIlceSlug, parseSayfaSlug, buildCityUrl, normalizeForUrl } from "@/lib/url-utils";
-import { decryptData, isEncryptedResponse } from "@/lib/crypto";
 
 import { fetchEczaneler } from '@/lib/api-client';
 
@@ -32,18 +31,13 @@ interface PageProps {
 
 async function getPharmaciesForMeta(il: string): Promise<Eczane[]> {
   try {
-    // İstanbul için fetchEczaneler kendi içinde doğru API'yi çağırıyor
     let eczaneler = await fetchEczaneler({ il, tarih: getISODate() });
-    
-    // İl verisini normalize et
     eczaneler = eczaneler.map(e => ({
       ...e,
-      il: e.il || il, // API bazen il verisini döndürmüyor
+      il: e.il || il,
     }));
-    
     return eczaneler;
-  } catch (error) {
-    console.error('Meta data fetch error:', error);
+  } catch {
     return [];
   }
 }
@@ -113,13 +107,10 @@ async function getPharmacies(il: string): Promise<{ data: Eczane[]; meta: { topl
   
   try {
     let eczaneler = await fetchEczaneler({ il, tarih: today });
-    
-    // İl verisini normalize et
     eczaneler = eczaneler.map(e => ({
       ...e,
       il: e.il || il,
     }));
-
     return { 
       data: eczaneler, 
       meta: { 
@@ -128,8 +119,7 @@ async function getPharmacies(il: string): Promise<{ data: Eczane[]; meta: { topl
         guncellenme: new Date().toISOString() 
       } 
     };
-  } catch (error) {
-    console.error('Pharmacy data fetch error:', error);
+  } catch {
     return emptyResult;
   }
 }
@@ -203,74 +193,60 @@ export default async function CityPage({ params }: PageProps) {
       <LocalBusinessJsonLd city={parsed.ilLabel} pharmacyCount={filteredPharmacies.length} date={isoDate} />
       <DateSeoJsonLd city={parsed.ilLabel} date={today} />
       <Header />
-      <main className="flex-1">
-        <section className="w-full bg-gradient-to-b from-[var(--color-primary-muted)] to-transparent py-12 px-6">
-          <div className="max-w-[960px] mx-auto">
+      <main className="flex-1 bg-gray-50">
+        {/* Kompakt Header */}
+        <section className="bg-white border-b border-gray-100 py-3 px-4">
+          <div className="max-w-5xl mx-auto">
             <Breadcrumb items={breadcrumbItems} baseUrl={baseUrl} />
-            <div className="text-center">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-[var(--color-primary-muted)] text-[var(--color-primary)] text-xs font-bold mb-4">
-                <span className="material-symbols-outlined text-sm mr-1">calendar_today</span>
-                {shortDate.toUpperCase()}
+            <div className="flex items-center justify-between gap-3 mt-2">
+              <div className="flex items-center gap-3">
+                <div className="size-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <svg className="size-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">
+                    {parsed.ilLabel} {selectedIlce && <span className="text-red-600">{selectedIlce}</span>}
+                  </h1>
+                  <p className="text-xs text-gray-500">{shortDate} · {filteredPharmacies.length} nöbetçi eczane</p>
+                </div>
               </div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight tracking-tight mb-4 text-[var(--color-text)]">
-                {parsed.ilLabel} {selectedIlce && <span className="text-[var(--color-primary)]">{selectedIlce}</span>} Nöbetçi Eczane
-                {validPage > 1 && <span className="text-[var(--color-text-secondary)] text-2xl md:text-3xl"> - Sayfa {validPage}</span>}
-              </h1>
-              <p className="text-[var(--color-text-secondary)] mb-8">
-                {shortDate} tarihinde {parsed.ilLabel}{selectedIlce ? ` ${selectedIlce}` : ""} nöbetçi eczane listesi
-              </p>
+              
+              {/* İlçe Dropdown */}
+              {districts.length > 1 && (
+                <DistrictSelect
+                  districts={districts}
+                  selectedIlce={selectedIlce}
+                  allPharmaciesCount={allPharmacies.length}
+                  pharmacyCounts={Object.fromEntries(districts.map(d => [d, allPharmacies.filter(p => p.ilce === d).length]))}
+                  baseUrl={buildCityUrl(parsed.il)}
+                />
+              )}
             </div>
-            <SearchForm cities={cities} initialCity={parsed.il} initialDistrict={selectedIlce || ""} />
           </div>
         </section>
 
-        {filteredPharmacies.length > 0 && (
-          <StatusBar city={parsed.ilLabel} district={selectedIlce || undefined} count={filteredPharmacies.length} lastUpdate={meta.guncellenme || new Date().toISOString()} />
-        )}
-
-        {districts.length > 1 && (
-          <div className="max-w-[1200px] mx-auto px-6 py-4">
-            <div className="flex flex-wrap gap-2">
-              <a href={buildCityUrl(parsed.il)} className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer active:scale-95 ${!selectedIlce ? "bg-[var(--color-primary)] text-white" : "bg-[var(--color-bg-card)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] text-[var(--color-text)]"}`}>
-                Tümü ({allPharmacies.length})
-              </a>
-              {districts.map((district) => {
-                const count = allPharmacies.filter((p) => p.ilce === district).length;
-                const isActive = selectedIlce && normalizeForUrl(selectedIlce) === normalizeForUrl(district);
-                return (
-                  <a
-                    key={district}
-                    href={buildCityUrl(parsed.il, district)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer active:scale-95 ${isActive ? "bg-[var(--color-primary)] text-white" : "bg-[var(--color-bg-card)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] text-[var(--color-text)]"}`}
-                  >
-                    {district} ({count})
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <section className="w-full max-w-[1200px] mx-auto px-6 pb-20">
+        {/* Eczane Listesi */}
+        <section className="max-w-5xl mx-auto px-4 py-4">
           {filteredPharmacies.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="size-24 bg-[var(--color-primary-muted)] rounded-full flex items-center justify-center text-[var(--color-primary)] mb-6">
-                <span className="material-symbols-outlined text-5xl">search_off</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-2 text-[var(--color-text)]">Eczane Bulunamadı</h3>
-              <p className="text-[var(--color-text-secondary)] max-w-md mb-4">
-                {parsed.ilLabel}{selectedIlce ? ` ${selectedIlce}` : ""} için {shortDate} tarihinde nöbetçi eczane verisi bulunmamaktadır.
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <svg className="size-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Eczane Bulunamadı</h3>
+              <p className="text-sm text-gray-500">
+                {parsed.ilLabel}{selectedIlce ? ` ${selectedIlce}` : ""} için veri bulunamadı.
               </p>
             </div>
           ) : (
             <>
-              <div className="text-center mb-6">
-                <p className="text-sm text-[var(--color-text-secondary)]">
-                  Toplam <strong className="text-[var(--color-primary)]">{filteredPharmacies.length}</strong> eczane bulundu
-                  {totalPages > 1 && ` • Sayfa ${validPage}/${totalPages}`}
+              {totalPages > 1 && (
+                <p className="text-center text-xs text-gray-400 mb-3">
+                  Sayfa {validPage} / {totalPages}
                 </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {pharmacies.map((pharmacy, index) => (
                   <PharmacyCard
                     key={`${pharmacy.eczaneAdi}-${startIndex + index}`}
@@ -283,7 +259,6 @@ export default async function CityPage({ params }: PageProps) {
                     showJsonLd={index < 10 && validPage === 1}
                   />
                 ))}
-                {pharmacies.length > 0 && pharmacies.length < 3 && totalPages === 1 && <PharmacyCardSkeleton />}
               </div>
               {totalPages > 1 && (
                 <Pagination

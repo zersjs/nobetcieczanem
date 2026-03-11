@@ -1,3 +1,7 @@
+"use client";
+
+import { useState, useEffect } from "react";
+
 interface StatusBarProps {
   city: string;
   district?: string;
@@ -6,9 +10,14 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ city, district, count, lastUpdate }: StatusBarProps) {
-  const today = new Date();
-  const dateStr = today.toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
-  const timeStr = new Date(lastUpdate).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  const [dateStr, setDateStr] = useState("");
+  const [timeStr, setTimeStr] = useState("");
+
+  useEffect(() => {
+    const today = new Date();
+    setDateStr(today.toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" }));
+    setTimeStr(new Date(lastUpdate).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }));
+  }, [lastUpdate]);
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center text-sm text-[var(--color-text-secondary)] gap-2">

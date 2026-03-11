@@ -1,12 +1,11 @@
 export * from './iller';
 
 export const API_CONFIG = {
-  baseUrl: 'https://apiservisim.vercel.app',
-  istanbulUrl: 'https://www.istanbuleczaciodasi.org.tr/nobetci-eczane/index.php',
-  endpoints: {
-    eczane: '/api/eczane',
+  eczanelerGenTr: {
+    baseUrl: 'https://www.eczaneler.gen.tr',
   },
-  timeout: 10000,
+  istanbulUrl: 'https://www.istanbuleczaciodasi.org.tr/nobetci-eczane/index.php',
+  timeout: 15000,
   retryCount: 3,
   retryDelay: 1000,
 } as const;

@@ -5,4 +5,5 @@ export { SearchForm, SearchFormSkeleton } from "./ui/SearchForm";
 export { StatusBar, StatusBarSkeleton } from "./ui/StatusBar";
 export { Breadcrumb, BreadcrumbSkeleton } from "./ui/Breadcrumb";
 export { InstallPWA } from "./ui/InstallPWA";
+export { DistrictSelect } from "./ui/DistrictSelect";
 export { PharmacyJsonLd, BreadcrumbJsonLd, FAQJsonLd, LocalBusinessJsonLd, DateSeoJsonLd } from "./seo/JsonLd";

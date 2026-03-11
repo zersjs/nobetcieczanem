@@ -66,8 +66,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const { normalized } = validation;
-    
-    // fetchEczaneler artık unstable_cache ile önbellekleniyor
     const rawEczaneler = await fetchEczaneler(normalized);
     let eczaneler = rawEczaneler.map(e => ({
       ...e,

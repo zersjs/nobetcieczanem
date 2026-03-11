@@ -2,6 +2,9 @@ import { MetadataRoute } from "next";
 import { ILLER } from "@/constants/iller";
 import { normalizeForUrl } from "@/lib/url-utils";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nobetcieczanem.com";
   const today = new Date().toISOString();

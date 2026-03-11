@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import gsap from "gsap";
 import { SearchForm } from "@/components";
 import { ILLER } from "@/constants/iller";
 
@@ -14,17 +13,7 @@ interface LocationHeroProps {
 
 export function LocationHero({ shortDate, formattedDate }: LocationHeroProps) {
   const router = useRouter();
-  const heroRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const [loading, setLoading] = useState(false);
-  const [locationFound, setLocationFound] = useState(false);
-  const [nearestCity, setNearestCity] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (heroRef.current) {
-      gsap.fromTo(heroRef.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
-    }
-  }, []);
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
     const R = 6371;
@@ -53,49 +42,23 @@ export function LocationHero({ shortDate, formattedDate }: LocationHeroProps) {
 
   const handleLocationClick = () => {
     if (!navigator.geolocation) {
-      toast.error("Konum desteği yok", { description: "Tarayıcınız konum özelliğini desteklemiyor." });
+      toast.error("Tarayıcınız konum özelliğini desteklemiyor");
       return;
     }
 
     setLoading(true);
-    if (buttonRef.current) {
-      gsap.to(buttonRef.current, { scale: 0.95, duration: 0.1 });
-    }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const nearest = findNearestCity(latitude, longitude);
-        
-        setNearestCity(nearest.label);
-        setLocationFound(true);
         setLoading(false);
-
-        if (buttonRef.current) {
-          gsap.to(buttonRef.current, { scale: 1, duration: 0.2, ease: "back.out(1.7)" });
-        }
-
-        toast.success(`${nearest.label} bulundu!`, { description: "Nöbetçi eczanelere yönlendiriliyorsunuz..." });
-        
-        setTimeout(() => {
-          router.push(`/${nearest.ad}-nobetci-eczane`);
-        }, 800);
+        toast.success(`${nearest.label} bulundu`);
+        router.push(`/${nearest.ad}-nobetci-eczane`);
       },
-      (error) => {
+      () => {
         setLoading(false);
-        if (buttonRef.current) {
-          gsap.to(buttonRef.current, { scale: 1, duration: 0.2 });
-        }
-        
-        let message = "Konum alınamadı.";
-        if (error.code === error.PERMISSION_DENIED) {
-          message = "Konum izni reddedildi. Tarayıcı ayarlarından izin verin.";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          message = "Konum bilgisi mevcut değil.";
-        } else if (error.code === error.TIMEOUT) {
-          message = "Konum isteği zaman aşımına uğradı.";
-        }
-        toast.error("Konum Hatası", { description: message });
+        toast.error("Konum alınamadı");
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
     );
@@ -104,55 +67,46 @@ export function LocationHero({ shortDate, formattedDate }: LocationHeroProps) {
   const cities = ILLER.map((il) => ({ plaka: il.plaka, ad: il.ad, label: il.label }));
 
   return (
-    <section className="w-full bg-gradient-to-b from-[var(--color-primary-muted)] to-transparent py-20 px-6">
-      <div ref={heroRef} className="max-w-[960px] mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-500/10 to-rose-500/10 border border-red-500/20 text-red-600 text-xs font-semibold tracking-wider mb-8">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-          </span>
-          CANLI · {shortDate.toUpperCase()}
-        </div>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight mb-6">
-          <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">{shortDate}</span>
-          <br />
-          <span className="bg-gradient-to-r from-red-600 via-rose-600 to-red-600 bg-clip-text text-transparent">Nöbetçi Eczane</span>
+    <section className="bg-white py-12 px-4 border-b border-gray-100">
+      <div className="max-w-2xl mx-auto text-center">
+        <p className="text-xs font-medium text-red-600 mb-2">{shortDate} · Güncel</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          Nöbetçi Eczane Bul
         </h1>
-        <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-xl mx-auto font-medium">
-          <span className="text-gray-900 font-semibold">81 ilde</span> size en yakın açık eczaneleri anında bulun
+        <p className="text-gray-500 text-sm mb-6">
+          Türkiye genelinde 81 ilde açık eczaneleri bulun
         </p>
 
-        <button
-          ref={buttonRef}
-          onClick={handleLocationClick}
-          disabled={loading || locationFound}
-          className="group mb-10 inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-2xl font-bold text-lg hover:from-red-700 hover:to-rose-700 shadow-xl shadow-red-500/25 transition-all duration-300 disabled:opacity-70 cursor-pointer disabled:cursor-wait active:scale-95 hover:shadow-2xl hover:shadow-red-500/30 hover:-translate-y-0.5"
-        >
-          {loading ? (
-            <>
-              <span className="material-symbols-outlined animate-spin">progress_activity</span>
-              Konum Alınıyor...
-            </>
-          ) : locationFound ? (
-            <>
-              <span className="material-symbols-outlined">check_circle</span>
-              {nearestCity} Bulundu
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined group-hover:animate-pulse">my_location</span>
-              Konumuma Göre Bul
-            </>
-          )}
-        </button>
-
-        <div className="flex items-center justify-center gap-4 mb-10">
-          <div className="h-px flex-1 max-w-[80px] bg-gradient-to-r from-transparent to-gray-300" />
-          <span className="text-sm text-gray-400 font-medium tracking-wide">veya şehir seçin</span>
-          <div className="h-px flex-1 max-w-[80px] bg-gradient-to-l from-transparent to-gray-300" />
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6">
+          <button
+            onClick={handleLocationClick}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {loading ? (
+              <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            )}
+            {loading ? "Konum alınıyor..." : "Konumuma Göre Bul"}
+          </button>
         </div>
 
-        <SearchForm cities={cities} />
+        <div className="flex items-center gap-3 justify-center mb-6">
+          <span className="h-px w-12 bg-gray-200"></span>
+          <span className="text-xs text-gray-400">veya şehir seçin</span>
+          <span className="h-px w-12 bg-gray-200"></span>
+        </div>
+
+        <div className="max-w-md mx-auto">
+          <SearchForm cities={cities} />
+        </div>
       </div>
     </section>
   );

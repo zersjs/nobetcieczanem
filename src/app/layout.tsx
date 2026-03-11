@@ -5,6 +5,10 @@ import "./globals.css";
 import { getFormattedDate, getSEODateKeywords, getShortDate } from "@/lib/date-utils";
 import { InstallPWA } from "@/components";
 import { PWAProvider } from "./PWAProvider";
+import { headers } from "next/headers";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const manrope = Manrope({
   subsets: ["latin", "latin-ext"],
@@ -14,6 +18,7 @@ const manrope = Manrope({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  await headers();
   const today = new Date();
   const dateStr = getFormattedDate(today);
   const shortDate = getShortDate(today);

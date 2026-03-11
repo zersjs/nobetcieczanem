@@ -34,16 +34,15 @@ export function CityGrid({ popularCities, allCities, shortDate }: CityGridProps)
     <>
       <section className="py-12 px-6">
         <div className="max-w-[1200px] mx-auto">
-          <h2 className="text-2xl font-bold mb-8 text-center text-[var(--color-text)]">Popüler İller - {shortDate}</h2>
-          <div ref={popularRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <h2 className="text-xl font-bold mb-6 text-center text-gray-900">Popüler İller</h2>
+          <div ref={popularRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {popularCities.map((il) => (
               <Link
                 key={il.plaka}
                 href={il.href}
-                className="group relative p-5 bg-gradient-to-br from-[var(--color-bg-card)] to-[var(--color-bg-secondary)] rounded-xl transition-all duration-300 text-center border border-[var(--color-border)] hover:border-[var(--color-primary)] shadow-sm hover:shadow-xl cursor-pointer hover:-translate-y-1 overflow-hidden"
+                className="group relative p-4 bg-white rounded-xl transition-all duration-200 text-center border border-gray-100 hover:border-red-200 shadow-sm hover:shadow-xl hover:-translate-y-1"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)] to-[#ff4757] opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                <span className="relative text-sm font-bold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors duration-300">
+                <span className="text-sm font-bold text-gray-700 group-hover:text-red-600 transition-colors">
                   {il.label}
                 </span>
               </Link>
@@ -52,15 +51,15 @@ export function CityGrid({ popularCities, allCities, shortDate }: CityGridProps)
         </div>
       </section>
 
-      <section className="py-12 px-6 bg-[var(--color-bg)]">
+      <section className="py-12 px-6 bg-gray-50/50">
         <div className="max-w-[1200px] mx-auto">
-          <h2 className="text-2xl font-bold mb-8 text-center text-[var(--color-text)]">Tüm İller</h2>
+          <h2 className="text-xl font-bold mb-6 text-center text-gray-900">Tüm İller</h2>
           <div ref={allRef} className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
             {allCities.map((il) => (
               <Link
                 key={il.plaka}
                 href={il.href}
-                className="px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:text-white bg-[var(--color-bg-card)] hover:bg-gradient-to-r hover:from-[var(--color-primary)] hover:to-[#ff4757] rounded-lg transition-all duration-300 text-center cursor-pointer hover:scale-105 active:scale-95 border border-transparent hover:border-[var(--color-primary)] shadow-sm hover:shadow-md"
+                className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-white bg-white hover:bg-gradient-to-r hover:from-red-500 hover:to-rose-500 rounded-lg transition-all duration-200 text-center border border-transparent hover:border-red-200 hover:shadow-md"
               >
                 {il.label}
               </Link>
